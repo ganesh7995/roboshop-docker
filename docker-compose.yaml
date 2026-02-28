@@ -1,0 +1,65 @@
+networks:
+  defaults:
+    driver: bridge
+    name: roboshop
+
+  services:
+    mongodb:
+      image: devopsgani/mongodb:v1
+      container_name: mongodb
+    catalogue:
+      image: devopsgani/catalogue:v1
+      container_name: catalogue
+
+    redis:
+      image: redis:7.0
+      container_name: redis
+
+    user:
+      image: devopsgani/user:v1
+      container_name: user
+      depends_on:
+      - redis
+      - mongodb
+    cart:
+      image: devopsgani/cart:v1
+      container_name: cart
+      depends_on:
+      - redis
+      - catalogue
+
+    mysql:
+      image: devopsgani/mysql:v1
+      container_name: mysql
+
+    shipping:
+      image: devopsgani/shipping:v1
+      container_name: shipping
+      depends_on:
+      - mysql
+      - cart
+    
+    rabbitmq:
+      image: rabbitmq:3
+      container_name: rabbitmq
+      environment:
+        RABBITMQ_DEFAULT_USER: roboshop
+        RABBITMQ_DEFAULT_PASS: roboshop123
+
+    payment:
+      image: devopsgani/payment:v1
+      container_name: payment
+      depends_on:
+      - cart
+      - rabbitmq
+      - user
+
+    frontend:
+      image: devopsgani/frontend:v1
+      container_name: frontend
+      depends_on:
+      - catalogue
+      - cart
+      - user
+      - shipping
+      - payment
